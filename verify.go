@@ -17,8 +17,8 @@ func verify(pubkey, signature, message string) {
   sigraw, _ := base64.StdEncoding.DecodeString(signature)
   var sig secp256k1.Signature
   // TODO check recId, 27 and compressed from sigraw[0]
-        sig.R.SetBytes(sigraw[1:1+32])
-        sig.S.SetBytes(sigraw[1+32:1+32+32])
+  sig.R.SetBytes(sigraw[1:1+32])
+  sig.S.SetBytes(sigraw[1+32:1+32+32])
   var pubkey_xy secp256k1.XY
   xy, _ := hex.DecodeString(pubkey)
   pubkey_xy.ParsePubkey(xy)
