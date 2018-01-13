@@ -1,6 +1,5 @@
 package main
 
-import "github.com/piotrnar/gocoin/lib/secp256k1"
 import "encoding/hex"
 import "encoding/base64"
 import "crypto/sha256"
@@ -15,14 +14,14 @@ func verify(pubkey, signature, message string) {
   msghash1 := sha256.Sum256([]byte(btcmsg))
   msghash2 := sha256.Sum256(msghash1[:])
   sigraw, _ := base64.StdEncoding.DecodeString(signature)
-  var sig secp256k1.Signature
+  var sig Signature
   // TODO check recId, 27 and compressed from sigraw[0]
   sig.R.SetBytes(sigraw[1:1+32])
   sig.S.SetBytes(sigraw[1+32:1+32+32])
-  var pubkey_xy secp256k1.XY
+  var pubkey_xy XY
   xy, _ := hex.DecodeString(pubkey)
   pubkey_xy.ParsePubkey(xy)
-  var msg secp256k1.Number
+  var msg Number
   msg.SetBytes(msghash2[:])
   if !sig.Verify(&pubkey_xy, &msg) { println("failed") }
 }
