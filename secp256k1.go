@@ -1,4 +1,4 @@
-package secp256k1
+package main
 
 const WINDOW_A = 5
 const WINDOW_G = 14
