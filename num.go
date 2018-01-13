@@ -1,9 +1,9 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
-	"encoding/hex"
 )
 
 var (
@@ -88,11 +88,10 @@ func (num *Number) rsh_x(bits uint) (res int) {
 }
 
 func (num *Number) IsOdd() bool {
-	return num.Bit(0)!=0;
+	return num.Bit(0) != 0
 }
 
-
-func (num *Number) get_bin(le int) ([]byte) {
+func (num *Number) get_bin(le int) []byte {
 	bts := num.Bytes()
 	if len(bts) > le {
 		panic("buffer too small")
