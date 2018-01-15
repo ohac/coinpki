@@ -19,11 +19,12 @@ func sha256d(body []byte) []byte {
 const (
 	H_BTC  string = "Bitcoin Signed Message:\n"
 	H_MONA string = "Monacoin Signed Message:\n"
+	H_KOTO string = "Zcash Signed Message:\n"
 )
 
 type CoinParams struct {
 	Header string
-	Magic  int
+	Magic  []byte
 }
 
 func messagehash(message, header string) (msghash2 []byte, err error) {
@@ -65,7 +66,7 @@ func parse_signature(signature string) (sig secp256k1.Signature, recid int,
 }
 
 func pubtoaddr(pubkey_xy2 secp256k1.XY, compressed bool,
-	magic int) (bcpy []byte) {
+	magic []byte) (bcpy []byte) {
 	size := 65
 	if compressed {
 		size = 33
@@ -80,7 +81,7 @@ func pubtoaddr(pubkey_xy2 secp256k1.XY, compressed bool,
 	ripemd160_h.Reset()
 	ripemd160_h.Write(pub_hash_1)
 	pub_hash_2 := ripemd160_h.Sum(nil)
-	bcpy = append([]byte{byte(magic)}, pub_hash_2...)
+	bcpy = append(magic, pub_hash_2...)
 	hash2 := sha256d(bcpy)
 	bcpy = append(bcpy, hash2[0:4]...)
 	return
@@ -216,14 +217,20 @@ func verify(addr1, signature, message string, params CoinParams,
 func main() {
 	P_BTC := CoinParams{
 		Header: H_BTC,
-		Magic:  0}
+		Magic:  []byte{byte(0)}}
 	P_MONA := CoinParams{
 		Header: H_MONA,
-		Magic:  50}
+		Magic:  []byte{byte(50)}}
+	P_KOTO := CoinParams{
+		Header: H_KOTO,
+		Magic:  []byte{byte(0x18), byte(0x36)}}
 	verify("1QHBj5GjAEp7oFKhp5QdeLXW8jnm2PupBs",
 		"HKnOcPe/RxF48z5U6JbyetZC7+wmPrlUOumbbecpMVlwbcfGLlTwGBtMDzjD4wxOg/VjQDg7TxHqP/Mfoohp7Cs=",
 		"test", P_BTC, false)
 	verify("MQ8q9jSGQdnHmZe4kfjGUkzHoPF9GCBbN6",
 		"IKO8h8iYp0wIBCh+D+/ixJ2MovYueUZDsFuvcvIPqNFnGTtL/eggy7HNymCbKemHbLR0QB1DpC6o6/By/eubXzI=",
 		"test", P_MONA, true)
+	verify("k1DVPRdn4SM1n6Y1BFmqLVYNV3WMhUY1RHt",
+		"H0V5OHd3lJHt/LfidXnjcBcAZkshTcayCgFn7TmHjq4ZLryGqISIpE8NvQNoL6G9x66ZmvzU97e2eL6w8+w11Vw=",
+		"test", P_KOTO, true)
 }
