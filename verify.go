@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/itchyny/base58-go"
+	"github.com/piotrnar/gocoin/lib/secp256k1"
 	"golang.org/x/crypto/ripemd160"
 	"math/big"
 )
@@ -44,7 +45,8 @@ func messagehash(message, header string) (msghash2 []byte, err error) {
 	return
 }
 
-func parse_signature(signature string) (sig Signature, recid int, err error) {
+func parse_signature(signature string) (sig secp256k1.Signature, recid int,
+	err error) {
 	sigraw, err2 := base64.StdEncoding.DecodeString(signature)
 	if err2 != nil {
 		err = err2
@@ -62,7 +64,8 @@ func parse_signature(signature string) (sig Signature, recid int, err error) {
 	return
 }
 
-func pubtoaddr(pubkey_xy2 XY, compressed bool, magic int) (bcpy []byte) {
+func pubtoaddr(pubkey_xy2 secp256k1.XY, compressed bool,
+	magic int) (bcpy []byte) {
 	size := 65
 	if compressed {
 		size = 33
@@ -102,6 +105,64 @@ func addrtostr(bcpy []byte) (s string, err error) {
 	return
 }
 
+// This function is copied from "piotrnar/gocoin/lib/secp256k1".
+// And modified for local package.
+func get_bin(num *secp256k1.Number, le int) []byte {
+	bts := num.Bytes()
+	if len(bts) > le {
+		panic("buffer too small")
+	}
+	if len(bts) == le {
+		return bts
+	}
+	return append(make([]byte, le-len(bts)), bts...)
+}
+
+// This function is copied from "piotrnar/gocoin/lib/secp256k1".
+// And modified for local package.
+func recover(sig *secp256k1.Signature, pubkey *secp256k1.XY,
+	m *secp256k1.Number, recid int) (ret bool) {
+	var thecurve_p secp256k1.Number
+	thecurve_p.SetBytes([]byte{
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFC, 0x2F})
+	var rx, rn, u1, u2 secp256k1.Number
+	var fx secp256k1.Field
+	var X secp256k1.XY
+	var xj, qj secp256k1.XYZ
+
+	rx.Set(&sig.R.Int)
+	if (recid & 2) != 0 {
+		rx.Add(&rx.Int, &secp256k1.TheCurve.Order.Int)
+		if rx.Cmp(&thecurve_p.Int) >= 0 {
+			return false
+		}
+	}
+
+	fx.SetB32(get_bin(&rx, 32))
+
+	X.SetXO(&fx, (recid&1) != 0)
+	if !X.IsValid() {
+		return false
+	}
+
+	xj.SetXY(&X)
+	rn.ModInverse(&sig.R.Int, &secp256k1.TheCurve.Order.Int)
+
+	u1.Mul(&rn.Int, &m.Int)
+	u1.Mod(&u1.Int, &secp256k1.TheCurve.Order.Int)
+
+	u1.Sub(&secp256k1.TheCurve.Order.Int, &u1.Int)
+
+	u2.Mul(&rn.Int, &sig.S.Int)
+	u2.Mod(&u2.Int, &secp256k1.TheCurve.Order.Int)
+
+	xj.ECmult(&qj, &u2, &u1)
+	pubkey.SetXYZ(&qj)
+
+	return true
+}
+
 func sigmestoaddr(signature, message string, params CoinParams,
 	compressed bool) (addr string, err error) {
 	msghash2, err2 := messagehash(message, params.Header)
@@ -114,11 +175,11 @@ func sigmestoaddr(signature, message string, params CoinParams,
 		err = err2
 		return
 	}
-	var msg Number
+	var msg secp256k1.Number
 	msg.SetBytes(msghash2)
 
-	var pubkey_xy2 XY
-	ret2 := sig.recover(&pubkey_xy2, &msg, recid)
+	var pubkey_xy2 secp256k1.XY
+	ret2 := recover(&sig, &pubkey_xy2, &msg, recid)
 	if !ret2 {
 		err = fmt.Errorf("recover pubkey failed")
 		return
