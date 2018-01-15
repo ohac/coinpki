@@ -107,6 +107,8 @@ func addrtostr(bcpy []byte) (s string, err error) {
 
 // This function is copied from "piotrnar/gocoin/lib/secp256k1".
 // And modified for local package.
+// License is:
+//   https://github.com/piotrnar/gocoin/blob/master/lib/secp256k1/COPYING
 func get_bin(num *secp256k1.Number, le int) []byte {
 	bts := num.Bytes()
 	if len(bts) > le {
@@ -120,6 +122,8 @@ func get_bin(num *secp256k1.Number, le int) []byte {
 
 // This function is copied from "piotrnar/gocoin/lib/secp256k1".
 // And modified for local package.
+// License is:
+//   https://github.com/piotrnar/gocoin/blob/master/lib/secp256k1/COPYING
 func recover(sig *secp256k1.Signature, pubkey *secp256k1.XY,
 	m *secp256k1.Number, recid int) (ret bool) {
 	var thecurve_p secp256k1.Number
