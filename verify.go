@@ -168,8 +168,8 @@ func recover(sig *secp256k1.Signature, pubkey *secp256k1.XY,
 	return true
 }
 
-func sigmestoaddr(signature, message string, params CoinParams,
-	compressed bool) (addr string, err error) {
+func sigmestoaddr(signature, message string,
+	params CoinParams) (addrs []string, err error) {
 	msghash2, err2 := messagehash(message, params.Header)
 	if err2 != nil {
 		err = err2
@@ -190,28 +190,32 @@ func sigmestoaddr(signature, message string, params CoinParams,
 		return
 	}
 
-	bcpy := pubtoaddr(pubkey_xy2, compressed, params.Magic)
-	s, err2 := addrtostr(bcpy)
-	if err2 != nil {
-		err = err2
-		return
+	addrs = make([]string, 2)
+	for i, compressed := range []bool{true, false} {
+		bcpy := pubtoaddr(pubkey_xy2, compressed, params.Magic)
+		s, err2 := addrtostr(bcpy)
+		if err2 != nil {
+			err = err2
+			return
+		}
+		addrs[i] = s
 	}
-	addr = s
 	return
 }
 
-func verify(addr1, signature, message string, params CoinParams,
-	compressed bool) {
-	addr2, err := sigmestoaddr(signature, message, params, compressed)
+func verify(addr1, signature, message string, params CoinParams) {
+	addrs, err := sigmestoaddr(signature, message, params)
 	if err != nil {
 		println("failed")
 		return
 	}
-	if addr1 == addr2 {
-		println("verified")
-	} else {
-		println("failed", addr1, addr2)
+	for _, addr2 := range addrs {
+		if addr1 == addr2 {
+			println("verified")
+			return
+		}
 	}
+	println("failed", addr1, addrs)
 }
 
 func main() {
@@ -226,11 +230,11 @@ func main() {
 		Magic:  []byte{byte(0x18), byte(0x36)}}
 	verify("1QHBj5GjAEp7oFKhp5QdeLXW8jnm2PupBs",
 		"HKnOcPe/RxF48z5U6JbyetZC7+wmPrlUOumbbecpMVlwbcfGLlTwGBtMDzjD4wxOg/VjQDg7TxHqP/Mfoohp7Cs=",
-		"test", P_BTC, false)
+		"test", P_BTC)
 	verify("MQ8q9jSGQdnHmZe4kfjGUkzHoPF9GCBbN6",
 		"IKO8h8iYp0wIBCh+D+/ixJ2MovYueUZDsFuvcvIPqNFnGTtL/eggy7HNymCbKemHbLR0QB1DpC6o6/By/eubXzI=",
-		"test", P_MONA, true)
+		"test", P_MONA)
 	verify("k1DVPRdn4SM1n6Y1BFmqLVYNV3WMhUY1RHt",
 		"H0V5OHd3lJHt/LfidXnjcBcAZkshTcayCgFn7TmHjq4ZLryGqISIpE8NvQNoL6G9x66ZmvzU97e2eL6w8+w11Vw=",
-		"test", P_KOTO, true)
+		"test", P_KOTO)
 }
