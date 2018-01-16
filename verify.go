@@ -203,22 +203,21 @@ func sigmestoaddr(signature, message string,
 	return
 }
 
-func verify(addr1, signature, message string, params CoinParams) {
+func verify(addr1, signature, message string, params CoinParams) (ok bool) {
 	addrs, err := sigmestoaddr(signature, message, params)
 	if err != nil {
-		println("failed")
 		return
 	}
 	for _, addr2 := range addrs {
 		if addr1 == addr2 {
-			println("verified")
+			ok = true
 			return
 		}
 	}
-	println("failed", addr1, addrs)
+	return
 }
 
-func main() {
+func find(addr1, signature, message string) (ok bool) {
 	P_BTC := CoinParams{
 		Header: H_BTC,
 		Magic:  []byte{byte(0)}}
@@ -228,13 +227,26 @@ func main() {
 	P_KOTO := CoinParams{
 		Header: H_KOTO,
 		Magic:  []byte{byte(0x18), byte(0x36)}}
-	verify("1QHBj5GjAEp7oFKhp5QdeLXW8jnm2PupBs",
+	for _, params := range []CoinParams{P_BTC, P_MONA, P_KOTO} {
+		ok2 := verify(addr1, signature, message, params)
+		if ok2 {
+			println("verified")
+			ok = true
+			return
+		}
+	}
+	println("failed")
+	return
+}
+
+func main() {
+	find("1QHBj5GjAEp7oFKhp5QdeLXW8jnm2PupBs",
 		"HKnOcPe/RxF48z5U6JbyetZC7+wmPrlUOumbbecpMVlwbcfGLlTwGBtMDzjD4wxOg/VjQDg7TxHqP/Mfoohp7Cs=",
-		"test", P_BTC)
-	verify("MQ8q9jSGQdnHmZe4kfjGUkzHoPF9GCBbN6",
+		"test")
+	find("MQ8q9jSGQdnHmZe4kfjGUkzHoPF9GCBbN6",
 		"IKO8h8iYp0wIBCh+D+/ixJ2MovYueUZDsFuvcvIPqNFnGTtL/eggy7HNymCbKemHbLR0QB1DpC6o6/By/eubXzI=",
-		"test", P_MONA)
-	verify("k1DVPRdn4SM1n6Y1BFmqLVYNV3WMhUY1RHt",
+		"test")
+	find("k1DVPRdn4SM1n6Y1BFmqLVYNV3WMhUY1RHt",
 		"H0V5OHd3lJHt/LfidXnjcBcAZkshTcayCgFn7TmHjq4ZLryGqISIpE8NvQNoL6G9x66ZmvzU97e2eL6w8+w11Vw=",
-		"test", P_KOTO)
+		"test")
 }
