@@ -19,6 +19,7 @@ func sha256d(body []byte) []byte {
 const (
 	H_BTC  string = "Bitcoin Signed Message:\n"
 	H_MONA string = "Monacoin Signed Message:\n"
+	H_ZNY  string = "BitZeny Signed Message:\n"
 	H_KOTO string = "Zcash Signed Message:\n"
 )
 
@@ -224,10 +225,13 @@ func find(addr1, signature, message string) (ok bool) {
 	P_MONA := CoinParams{
 		Header: H_MONA,
 		Magic:  []byte{byte(50)}}
+	P_ZNY := CoinParams{
+		Header: H_ZNY,
+		Magic:  []byte{byte(81)}}
 	P_KOTO := CoinParams{
 		Header: H_KOTO,
 		Magic:  []byte{byte(0x18), byte(0x36)}}
-	for _, params := range []CoinParams{P_BTC, P_MONA, P_KOTO} {
+	for _, params := range []CoinParams{P_BTC, P_MONA, P_ZNY, P_KOTO} {
 		ok2 := verify(addr1, signature, message, params)
 		if ok2 {
 			println("verified")
@@ -245,6 +249,9 @@ func main() {
 		"test")
 	find("MQ8q9jSGQdnHmZe4kfjGUkzHoPF9GCBbN6",
 		"IKO8h8iYp0wIBCh+D+/ixJ2MovYueUZDsFuvcvIPqNFnGTtL/eggy7HNymCbKemHbLR0QB1DpC6o6/By/eubXzI=",
+		"test")
+	find("ZnEHg9tqha8wxiQVnjgMa6NYD9rmvykWnK",
+		"H39Chj5ZsExhO1A/4iVTl3hPLCrKw5mesMgrjuiiJ7L9Dru43tUg4krqCNqhhGL3lKlzbbF7MLlHAT5ndBPzs8A=",
 		"test")
 	find("k1DVPRdn4SM1n6Y1BFmqLVYNV3WMhUY1RHt",
 		"H0V5OHd3lJHt/LfidXnjcBcAZkshTcayCgFn7TmHjq4ZLryGqISIpE8NvQNoL6G9x66ZmvzU97e2eL6w8+w11Vw=",
