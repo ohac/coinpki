@@ -247,6 +247,7 @@ func find(addr1, signature, message string) (ok bool) {
 	return
 }
 
+/*
 func main() {
 	find("1QHBj5GjAEp7oFKhp5QdeLXW8jnm2PupBs",
 		"HKnOcPe/RxF48z5U6JbyetZC7+wmPrlUOumbbecpMVlwbcfGLlTwGBtMDzjD4wxOg/VjQDg7TxHqP/Mfoohp7Cs=",
@@ -264,3 +265,4 @@ func main() {
 		"H0V5OHd3lJHt/LfidXnjcBcAZkshTcayCgFn7TmHjq4ZLryGqISIpE8NvQNoL6G9x66ZmvzU97e2eL6w8+w11Vw=",
 		"test")
 }
+*/
